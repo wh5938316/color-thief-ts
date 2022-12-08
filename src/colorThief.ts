@@ -117,7 +117,7 @@ class ColorThief {
   public getPalette(
     sourceImage: HTMLImageElement,
     colorCount: number,
-    quality: number,
+    quality: number = 10,
     colorType: "array" | "hex" = "hex"
   ) {
     const options = validateOptions({
@@ -180,9 +180,65 @@ class ColorThief {
     return dominantColor;
   }
 
+  public getPaletteAsync(
+    imageUrl: string,
+    colorCount: number,
+    quality: number,
+    colorType: "array"
+  ): Promise<ColorArray[]>;
+
+  public getPaletteAsync(
+    imageUrl: string,
+    colorCount: number,
+    quality: number,
+    colorType: "hex"
+  ): Promise<string[]>;
+
+  public getPaletteAsync(
+    imageUrl: string,
+    colorCount: number,
+    quality: number,
+    colorType: "array" | "hex" = "hex"
+  ) {
+    return this.asyncFetchImage(imageUrl).then((sourceImage) => {
+      if (sourceImage === null) {
+        return { dominantColor: null, palette: [], image: sourceImage };
+      }
+
+      const palette = this.getPalette(
+        sourceImage,
+        colorCount,
+        quality,
+        "array"
+      );
+
+      if (palette === null) {
+        return { dominantColor: null, palette: [], image: sourceImage };
+      }
+
+      if (colorType === "hex") {
+        return palette.map((item) => arrayToHex(item));
+      }
+
+      return palette;
+    });
+  }
+
   public getColorAsync(
     imageUrl: string,
     quality: number,
+    colorType: "array"
+  ): Promise<ColorArray>;
+
+  public getColorAsync(
+    imageUrl: string,
+    quality: number,
+    colorType: "hex"
+  ): Promise<string>;
+
+  public getColorAsync(
+    imageUrl: string,
+    quality: number = 10,
     colorType: "array" | "hex" = "hex"
   ) {
     return this.asyncFetchImage(imageUrl).then((sourceImage) => {
@@ -199,14 +255,10 @@ class ColorThief {
       const dominantColor = palette[0];
 
       if (colorType === "hex") {
-        return {
-          dominantColor: arrayToHex(dominantColor),
-          palette: palette.map((item) => arrayToHex(item)),
-          image: sourceImage,
-        };
+        return arrayToHex(dominantColor);
       }
 
-      return { dominantColor, palette, image: sourceImage };
+      return dominantColor;
     });
   }
 }
