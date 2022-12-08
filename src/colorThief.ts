@@ -5,6 +5,22 @@ import { arrayToHex } from "./utils";
 
 type ColorArray = [number, number, number];
 
+type ColorType = "array" | "hex";
+
+interface PaletteOptions<T extends ColorType = ColorType> {
+  quality?: number;
+  colorType?: T;
+}
+
+/**
+ *
+ * quality is an optional argument. It needs to be an integer. 1 is the highest quality settings.
+ * 10 is the default. There is a trade-off between quality and speed. The bigger the number, the
+ * faster the palette generation but the greater the likelihood that colors will be missed.
+ *
+ */
+const DEFAULT_QUALITY = 10;
+
 /*
  *
  * Thanks
@@ -103,26 +119,25 @@ class ColorThief {
   public getPalette(
     sourceImage: HTMLImageElement,
     colorCount: number,
-    quality: number,
-    colorType: "array"
+    opts?: PaletteOptions<"array">
   ): ColorArray[];
 
   public getPalette(
     sourceImage: HTMLImageElement,
     colorCount: number,
-    quality: number,
-    colorType: "hex"
+    opts?: PaletteOptions<"hex">
   ): string[];
 
   public getPalette(
     sourceImage: HTMLImageElement,
     colorCount: number,
-    quality: number = 10,
-    colorType: "array" | "hex" = "hex"
+    opts?: PaletteOptions
   ) {
+    const colorType = opts?.colorType ?? "hex";
+
     const options = validateOptions({
       colorCount,
-      quality,
+      quality: opts?.quality ?? DEFAULT_QUALITY,
     });
 
     // Create custom CanvasImage object
@@ -163,10 +178,21 @@ class ColorThief {
    * */
   public getColor(
     sourceImage: HTMLImageElement,
-    quality = 10,
-    colorType: "array" | "hex" = "hex"
-  ) {
-    const palette = this.getPalette(sourceImage, 5, quality, "array");
+    opts?: PaletteOptions<"array">
+  ): ColorArray;
+
+  public getColor(
+    sourceImage: HTMLImageElement,
+    opts?: PaletteOptions<"hex">
+  ): string;
+
+  public getColor(sourceImage: HTMLImageElement, opts?: PaletteOptions) {
+    const colorType = opts?.colorType ?? "hex";
+
+    const palette = this.getPalette(sourceImage, 5, {
+      quality: opts?.quality ?? DEFAULT_QUALITY,
+      colorType: "array",
+    });
     const dominantColor = palette?.[0] ?? null;
 
     if (dominantColor === null) {
@@ -183,34 +209,32 @@ class ColorThief {
   public getPaletteAsync(
     imageUrl: string,
     colorCount: number,
-    quality: number,
-    colorType: "array"
+    opts?: PaletteOptions<"array">
   ): Promise<ColorArray[]>;
 
   public getPaletteAsync(
     imageUrl: string,
     colorCount: number,
-    quality: number,
-    colorType: "hex"
+    opts?: PaletteOptions<"hex">
   ): Promise<string[]>;
 
   public getPaletteAsync(
     imageUrl: string,
     colorCount: number,
-    quality: number,
-    colorType: "array" | "hex" = "hex"
+    opts?: PaletteOptions
   ) {
+    const quality = opts?.quality ?? DEFAULT_QUALITY;
+    const colorType = opts?.colorType ?? "hex";
+
     return this.asyncFetchImage(imageUrl).then((sourceImage) => {
       if (sourceImage === null) {
         return { dominantColor: null, palette: [], image: sourceImage };
       }
 
-      const palette = this.getPalette(
-        sourceImage,
-        colorCount,
+      const palette = this.getPalette(sourceImage, colorCount, {
         quality,
-        "array"
-      );
+        colorType: "array",
+      });
 
       if (palette === null) {
         return { dominantColor: null, palette: [], image: sourceImage };
@@ -226,27 +250,27 @@ class ColorThief {
 
   public getColorAsync(
     imageUrl: string,
-    quality: number,
-    colorType: "array"
+    opts?: PaletteOptions<"array">
   ): Promise<ColorArray>;
 
   public getColorAsync(
     imageUrl: string,
-    quality: number,
-    colorType: "hex"
+    opts?: PaletteOptions<"hex">
   ): Promise<string>;
 
-  public getColorAsync(
-    imageUrl: string,
-    quality: number = 10,
-    colorType: "array" | "hex" = "hex"
-  ) {
+  public getColorAsync(imageUrl: string, opts?: PaletteOptions) {
+    const quality = opts?.quality ?? DEFAULT_QUALITY;
+    const colorType = opts?.colorType ?? "hex";
+
     return this.asyncFetchImage(imageUrl).then((sourceImage) => {
       if (sourceImage === null) {
         return { dominantColor: null, palette: [], image: sourceImage };
       }
 
-      const palette = this.getPalette(sourceImage, 5, quality, "array");
+      const palette = this.getPalette(sourceImage, 5, {
+        quality,
+        colorType: "array",
+      });
 
       if (palette === null) {
         return { dominantColor: null, palette: [], image: sourceImage };
