@@ -1,0 +1,37 @@
+{
+  "name": "color-thief-ts",
+  "version": "1.0.0",
+  "description": "Get the dominant color or color palette from an image.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wh5938316/color-thief-ts.git"
+  },
+  "keywords": [
+    "javascript",
+    "canvas",
+    "colorthief",
+    "palette",
+    "color",
+    "typescript"
+  ],
+  "author": "Herr Wang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wh5938316/color-thief-ts/issues"
+  },
+  "homepage": "https://github.com/wh5938316/color-thief-ts#readme",
+  "dependencies": {
+    "quantize": "^1.0.2"
+  },
+  "devDependencies": {
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.4"
+  }
+}

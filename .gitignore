@@ -1,0 +1,15 @@
+# common
+/dist
+
+# dependencies
+node_modules
+
+# mac os
+.DS_Store
+
+# jest
+coverage
+
+# yarn
+yarn-debug.log*
+yarn-error.log*
