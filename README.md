@@ -1,6 +1,6 @@
 # Color Thief
 
-Grab the color palette from an image using just Javascript.Works in the browser and in Node.
+Grab the color palette from an image using just Javascript.Works in the browser.
 
 ## Getting Started
 
