@@ -1,18 +1,32 @@
 {
   "name": "color-thief-ts",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "Get the dominant color or color palette from an image.",
+  "type": "module",
+  "files": [
+    "README.md",
+    "dist",
+    "package.json"
+  ],
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "import": "./dist/browser.mjs",
       "require": "./dist/browser.js",
-      "type": "./dist/browser.d.ts"
+      "node": "./dist/node.js"
     },
     "./node": {
       "import": "./dist/node.mjs",
-      "require": "./dist/node.js",
-      "type": "./dist/node.d.ts"
+      "require": "./dist/node.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "browser": [
+        "dist/browser.d.ts"
+      ],
+      "node": [
+        "dist/node.d.ts"
+      ]
     }
   },
   "scripts": {
