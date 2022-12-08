@@ -1,16 +1,7 @@
 // color quantization, based on Leptonica
-import quantize from "quantize";
-import { createPixelArray, validateOptions } from "./core";
-import { arrayToHex } from "./utils";
-
-type ColorArray = [number, number, number];
-
-type ColorType = "array" | "hex";
-
-interface PaletteOptions<T extends ColorType = ColorType> {
-  quality?: number;
-  colorType?: T;
-}
+import Core from "./core";
+import type { ColorArray, PaletteOptions } from "./type";
+import arrayToHex from "./utils/arrayToHex";
 
 /**
  *
@@ -56,10 +47,11 @@ class CanvasImage {
   }
 }
 
-class ColorThief {
+class ColorThief extends Core {
   private crossOrigin: Boolean;
 
   constructor(opts?: { crossOrigin: boolean }) {
+    super();
     this.crossOrigin = opts?.crossOrigin ?? false;
   }
 
@@ -101,6 +93,15 @@ class ColorThief {
     });
   }
 
+  private getImageData(sourceImage: HTMLImageElement) {
+    // Create custom CanvasImage object
+    const image = new CanvasImage(sourceImage);
+    const imageData = image.getImageData();
+    const pixelCount = image.width * image.height;
+
+    return [imageData, pixelCount] as const;
+  }
+
   /*
    * getPalette(sourceImage[, colorCount, quality])
    * returns array[ {r: num, g: num, b: num}, {r: num, g: num, b: num}, ...]
@@ -135,26 +136,9 @@ class ColorThief {
   ) {
     const colorType = opts?.colorType ?? "hex";
 
-    const options = validateOptions({
-      colorCount,
-      quality: opts?.quality ?? DEFAULT_QUALITY,
-    });
+    const [imageData, pixelCount] = this.getImageData(sourceImage);
 
-    // Create custom CanvasImage object
-    const image = new CanvasImage(sourceImage);
-    const imageData = image.getImageData();
-    const pixelCount = image.width * image.height;
-
-    const pixelArray = createPixelArray(
-      imageData.data,
-      pixelCount,
-      options.quality
-    );
-
-    // Send array to quantize function which clusters values
-    // using median cut algorithm
-    const cmap = quantize(pixelArray, options.colorCount);
-    const palette = cmap ? (cmap.palette() as ColorArray[]) : [];
+    const palette = this._getPalette(imageData, pixelCount, colorCount, opts);
 
     if (colorType === "hex") {
       return palette.map((item) => arrayToHex(item));

@@ -1,55 +1,110 @@
-export function createPixelArray(
-  imgData: Uint8ClampedArray,
-  pixelCount: number,
-  quality: number
-) {
-  const pixels = imgData;
-  const pixelArray = [];
+// color quantization, based on Leptonica
+import quantize from "quantize";
+import createPixelArray from "./utils/createPixelArray";
+import validateOptions from "./utils/validateOptions";
 
-  for (let i = 0, offset, r, g, b, a; i < pixelCount; i = i + quality) {
-    offset = i * 4;
-    r = pixels[offset + 0];
-    g = pixels[offset + 1];
-    b = pixels[offset + 2];
-    a = pixels[offset + 3];
+type ColorArray = [number, number, number];
 
-    // If pixel is mostly opaque and not white
-    if (typeof a === "undefined" || a >= 125) {
-      if (!(r > 250 && g > 250 && b > 250)) {
-        pixelArray.push([r, g, b]);
-      }
-    }
-  }
-  return pixelArray;
+type ColorType = "array" | "hex";
+
+interface PaletteOptions<T extends ColorType = ColorType> {
+  quality?: number;
+  colorType?: T;
 }
 
-export function validateOptions(options: {
-  colorCount: number;
-  quality: number;
-}) {
-  let { colorCount, quality } = options;
+/**
+ *
+ * quality is an optional argument. It needs to be an integer. 1 is the highest quality settings.
+ * 10 is the default. There is a trade-off between quality and speed. The bigger the number, the
+ * faster the palette generation but the greater the likelihood that colors will be missed.
+ *
+ */
+const DEFAULT_QUALITY = 10;
 
-  if (typeof colorCount === "undefined" || !Number.isInteger(colorCount)) {
-    colorCount = 10;
-  } else if (colorCount === 1) {
-    throw new Error(
-      "colorCount should be between 2 and 20. To get one color, call getColor() instead of getPalette()"
-    );
-  } else {
-    colorCount = Math.max(colorCount, 2);
-    colorCount = Math.min(colorCount, 20);
-  }
+/*
+ *
+ * Thanks
+ * ------
+ * Nick Rabinowitz - For creating quantize.js.
+ * John Schulz - For clean up and optimization. @JFSIII
+ * Nathan Spady - For adding drag and drop support to the demo page.
+ *
+ */
 
-  if (
-    typeof quality === "undefined" ||
-    !Number.isInteger(quality) ||
-    quality < 1
+class ColorThief {
+  /*
+   * getPalette(sourceImage[, colorCount, quality])
+   * returns array[ {r: num, g: num, b: num}, {r: num, g: num, b: num}, ...]
+   *
+   * Use the median cut algorithm provided by quantize.js to cluster similar colors.
+   *
+   * colorCount determines the size of the palette; the number of colors returned. If not set, it
+   * defaults to 10.
+   *
+   * quality is an optional argument. It needs to be an integer. 1 is the highest quality settings.
+   * 10 is the default. There is a trade-off between quality and speed. The bigger the number, the
+   * faster the palette generation but the greater the likelihood that colors will be missed.
+   *
+   *
+   */
+  public _getPalette(
+    imageData: ImageData,
+    pixelCount: number,
+    colorCount: number,
+    opts?: PaletteOptions
   ) {
-    quality = 10;
+    const colorType = opts?.colorType ?? "hex";
+
+    const options = validateOptions({
+      colorCount,
+      quality: opts?.quality ?? DEFAULT_QUALITY,
+    });
+
+    const pixelArray = createPixelArray(
+      imageData.data,
+      pixelCount,
+      options.quality
+    );
+
+    // Send array to quantize function which clusters values
+    // using median cut algorithm
+    const cmap = quantize(pixelArray, options.colorCount);
+    const palette = cmap ? (cmap.palette() as ColorArray[]) : [];
+
+    return palette;
   }
 
-  return {
-    colorCount,
-    quality,
-  };
+  /*
+   * getColor(sourceImage[, quality])
+   * returns {r: num, g: num, b: num}
+   *
+   * Use the median cut algorithm provided by quantize.js to cluster similar
+   * colors and return the base color from the largest cluster.
+   *
+   * Quality is an optional argument. It needs to be an integer. 1 is the highest quality settings.
+   * 10 is the default. There is a trade-off between quality and speed. The bigger the number, the
+   * faster a color will be returned but the greater the likelihood that it will not be the visually
+   * most dominant color.
+   *
+   * */
+  public _getColor(
+    imageData: ImageData,
+    pixelCount: number,
+    opts?: PaletteOptions
+  ) {
+    const colorType = opts?.colorType ?? "hex";
+
+    const palette = this._getPalette(imageData, pixelCount, 5, {
+      quality: opts?.quality ?? DEFAULT_QUALITY,
+      colorType: "array",
+    });
+    const dominantColor = palette?.[0] ?? null;
+
+    if (dominantColor === null) {
+      return dominantColor;
+    }
+    return dominantColor;
+  }
 }
+
+export default ColorThief;

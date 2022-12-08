@@ -1,4 +1,4 @@
-export function arrayToHex(color: [number, number, number]) {
+export default function arrayToHex(color: [number, number, number]) {
   const hexCode =
     "#" +
     color
