@@ -1,6 +1,6 @@
 {
   "name": "color-thief-ts",
-  "version": "1.0.11",
+  "version": "1.1.0",
   "description": "Get the dominant color or color palette from an image.",
   "type": "module",
   "files": [

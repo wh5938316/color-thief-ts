@@ -4,8 +4,10 @@ import Core from "./core";
 import type { ColorArray, PaletteOptions } from "./type";
 import arrayToHex from "./utils/arrayToHex";
 
+type ImageType = any;
+
 class ColorThief extends Core {
-  private getImageData(img: HTMLImageElement) {
+  private getImageData(img: ImageType) {
     return new Promise<[ImageData, number]>((resolve, reject) => {
       getPixels(img, function (err: any, data: any) {
         if (err) {
@@ -18,22 +20,18 @@ class ColorThief extends Core {
   }
 
   public getPalette(
-    img: HTMLImageElement,
+    img: ImageType,
     colorCount: number,
     opt?: PaletteOptions<"array">
   ): Promise<ColorArray[]>;
 
   public getPalette(
-    img: HTMLImageElement,
+    img: ImageType,
     colorCount: number,
     opt?: PaletteOptions<"hex">
   ): Promise<string[]>;
 
-  public getPalette(
-    img: HTMLImageElement,
-    colorCount = 10,
-    opts?: PaletteOptions
-  ) {
+  public getPalette(img: ImageType, colorCount = 10, opts?: PaletteOptions) {
     return new Promise((resolve, reject) => {
       this.getImageData(img)
         .then(([imageData, pixelCount]) => {
@@ -57,16 +55,13 @@ class ColorThief extends Core {
   }
 
   public getColor(
-    img: HTMLImageElement,
+    img: ImageType,
     opt?: PaletteOptions<"array">
   ): Promise<ColorArray>;
 
-  public getColor(
-    img: HTMLImageElement,
-    opt?: PaletteOptions<"hex">
-  ): Promise<string>;
+  public getColor(img: ImageType, opt?: PaletteOptions<"hex">): Promise<string>;
 
-  public getColor(img: HTMLImageElement, opts?: PaletteOptions) {
+  public getColor(img: ImageType, opts?: PaletteOptions) {
     return new Promise((resolve, reject) => {
       this.getPalette(img, 5, {
         quality: opts?.quality ?? 10,

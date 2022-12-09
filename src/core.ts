@@ -47,7 +47,7 @@ class ColorThief {
    *
    *
    */
-  public _getPalette(
+  protected _getPalette(
     imageData: ImageData,
     pixelCount: number,
     colorCount: number,
@@ -87,7 +87,7 @@ class ColorThief {
    * most dominant color.
    *
    * */
-  public _getColor(
+  protected _getColor(
     imageData: ImageData,
     pixelCount: number,
     opts?: PaletteOptions
